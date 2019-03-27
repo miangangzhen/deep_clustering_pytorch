@@ -63,9 +63,10 @@ def run_clustering(doc_embeddings, dims, batch_size=16, n_epochs=1, update_inter
     dataset = TensorDataset(inputs)
     dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False)
 
-    # model = nn.Sequential(Encoder(dims), Clustering())
     model = HybridModel(dims)
-    model.load_state_dict(torch.load("enc_dec_model"), strict=False)
+    enc_dec_model = {k[2:]: v for k, v in torch.load("enc_dec_model").items()}
+    model.encoder.load_state_dict(enc_dec_model, strict=False)
+    model.decoder.load_state_dict(enc_dec_model, strict=False)
 
     if os.path.exists("clustering_model"):
         model.load_state_dict(torch.load("clustering_model"))
