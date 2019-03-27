@@ -4,7 +4,8 @@ from train_utils import *
 
 def init_center_with_kmeans(n_clusters, X, dims):
     model = Encoder(dims)
-    model.load_state_dict(torch.load("enc_dec_model"), strict=False)
+    enc_dec_model = {k[2:]: v for k, v in torch.load("enc_dec_model").items()}
+    model.load_state_dict(enc_dec_model, strict=False)
     model.eval()
     with torch.no_grad():
         X_encoded = model(torch.from_numpy(X))
