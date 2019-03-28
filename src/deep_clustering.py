@@ -1,36 +1,25 @@
-from sklearn.cluster import KMeans
 from train_utils import *
 
 
-def init_center_with_kmeans(n_clusters, X, dims):
-    model = Encoder(dims)
-    enc_dec_model = {k[2:]: v for k, v in torch.load("enc_dec_model").items()}
-    model.load_state_dict(enc_dec_model, strict=False)
-    model.eval()
-    with torch.no_grad():
-        X_encoded = model(torch.from_numpy(X))
-
-    kmeans = KMeans(n_clusters=n_clusters, n_init=20, n_jobs=4)
-    kmeans.fit(X_encoded)
-    np.save("cluster_centers.npy", kmeans.cluster_centers_)
-
-
-def main(doc_embeddings, n_cluster, pretrain=True, y=None, dims=None):
+def main(doc_embeddings, n_cluster, pretrain=True, y=None, dims=None, device="cpu"):
 
     if dims is None:
         dims = [doc_embeddings.shape[-1], 500, 500, 2000, n_cluster]
 
     if pretrain:
         print("pretraining encoder and decoder to init encoder weights")
-        pretrain_enc_dec(doc_embeddings, dims, n_epochs=300)
-        print("pretraining kmeans to init center points")
-        init_center_with_kmeans(n_cluster, doc_embeddings, dims)
+        pretrain_enc_dec(doc_embeddings, dims, n_epochs=300, batch_size=256, y_real=y, device=device)
+
+    print("pretraining kmeans to init center points")
+    init_center_with_kmeans(n_cluster, doc_embeddings, dims, y_real=y, device=device)
 
     print("run deep encoder clustering")
-    return run_clustering(doc_embeddings, dims, n_epochs=10, y_real=y)
+    return run_clustering(doc_embeddings, dims, n_epochs=300, y_real=y, batch_size=256, device=device)
 
 
 if __name__ == "__main__":
+    # GPU check
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     from torchvision import datasets
     train = datasets.MNIST("../data", train=True, download=True)
@@ -45,4 +34,4 @@ if __name__ == "__main__":
     n_cluster = 10
     is_pretrain = True
 
-    labels = main(X, n_cluster, pretrain=is_pretrain, y=y)
+    labels = main(X, n_cluster, pretrain=is_pretrain, y=y, device=device)

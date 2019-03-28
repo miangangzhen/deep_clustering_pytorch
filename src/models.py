@@ -10,8 +10,8 @@ class Encoder(nn.Module):
         for i in range(len(dims) - 1):
             self.encoder_layers.append(nn.Linear(dims[i], dims[i+1]))
             if i != len(dims) - 2:
-                self.encoder_layers.append(nn.ReLU())
-                self.encoder_layers.append(nn.Dropout(p=0.2))
+                self.encoder_layers.append(nn.LeakyReLU())
+                # self.encoder_layers.append(nn.Dropout(p=0.1))
 
     def forward(self, x):
         encode = x
@@ -27,8 +27,8 @@ class Decoder(nn.Module):
         for i in range(len(dims) - 1, 0, -1):
             self.decoder_layers.append(nn.Linear(dims[i], dims[i-1]))
             if i != 1:
-                self.decoder_layers.append(nn.ReLU())
-                self.decoder_layers.append(nn.Dropout(p=0.2))
+                self.decoder_layers.append(nn.LeakyReLU())
+                # self.decoder_layers.append(nn.Dropout(p=0.1))
 
     def forward(self, x):
         decode = x
