@@ -160,5 +160,6 @@ def run_clustering(doc_embeddings, dims, batch_size=16, n_epochs=1, update_inter
 
     model.eval()
     with torch.no_grad():
-        q = model(inputs).cpu().numpy()
+        _, q = model(inputs)
+        q = q.cpu().numpy()
     return q.argmax(1)
